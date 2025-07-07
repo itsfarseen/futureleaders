@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:13.3-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+      ADMINER_DESIGN: dracula
+    depends_on:
+      - db
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DB_PASSWORD: "${DB_PASSWORD}"
+      DATABASE_URL: "postgres://user:${DB_PASSWORD}@db:5432/db"
+      ROCKET_DATABASES: '{election_db={url="postgres://user:${DB_PASSWORD}@db:5432/db"}}'
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      BACKEND: http://backend:5000
+    depends_on:
+      - backend
+
+volumes:
+  db-data:
