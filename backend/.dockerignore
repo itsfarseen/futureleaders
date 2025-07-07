@@ -1,1 +1,4 @@
 target
+# this is to be set in the docker image
+rust-toolchain
+docker-build-and-push.sh
