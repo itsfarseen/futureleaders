@@ -1,22 +1,10 @@
-FROM rustlang/rust:nightly-slim as planner
+FROM instrumentisto/rust:nightly-slim-2022-12-13 AS builder
 WORKDIR /app
-RUN cargo install cargo-chef
-COPY . .
-RUN cargo chef prepare  --recipe-path recipe.json
-
-FROM rustlang/rust:nightly-slim as cacher
-WORKDIR /app
-RUN cargo install cargo-chef
 RUN apt-get update && apt-get install -y libpq-dev
-COPY --from=planner /app/recipe.json recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json
-
-FROM rustlang/rust:nightly-slim as builder
-RUN apt-get update && apt-get install -y libpq-dev
-WORKDIR /app
-COPY . .
-COPY --from=cacher /app/target target
-COPY --from=cacher /usr/local/cargo /usr/local/cargo
+COPY Cargo.toml Cargo.lock .
+COPY src ./src
+COPY migrations ./migrations
+RUN cargo update --dry-run # trigger crates.io index update
 RUN cargo build --release
 
 FROM debian:buster-slim
