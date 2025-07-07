@@ -1,0 +1,13 @@
+:80 {
+    root * /usr/share/caddy
+    file_server
+
+    # Proxy /api/* → $BACKEND, stripping the /api prefix
+    @api {
+        path /api/*
+    }
+    handle @api {
+        uri strip_prefix /api
+        reverse_proxy {env.BACKEND}
+    }
+}
