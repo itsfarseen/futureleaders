@@ -8,6 +8,6 @@
     }
     handle @api {
         uri strip_prefix /api
-        reverse_proxy "{env.BACKEND}"
+        reverse_proxy {$BACKEND}
     }
 }
